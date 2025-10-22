@@ -50,7 +50,6 @@ def get_exchange_table_data():
 
 def home(request):
     currencies = get_currencies()
-    # OptimizaciÃ³n: llamamos a la funciÃ³n una sola vez
     table_info = get_exchange_table_data()
     exchange_table, column_currencies = table_info if table_info else (None, None)
     
@@ -65,27 +64,36 @@ def home(request):
         from_currency = request.POST.get('from_currency')
         to_currency = request.POST.get('to_currency')
         context.update({'from_currency': from_currency, 'to_currency': to_currency})
+
         if not amount_str:
             context['error'] = 'Por favor, ingresa un monto.'
             return render(request, 'converter/index.html', context)
+        
         try:
             amount = float(amount_str)
-            context['original_amount'] = f"{amount:,.2f}"
+            # CAMBIO AQUÍ: de ,.2f a ,.1f
+            context['original_amount'] = f"{amount:,.1f}"
+
             if from_currency == to_currency:
-                context['converted_amount'] = f"{amount:,.2f}"
+                # CAMBIO AQUÍ: de ,.2f a ,.1f
+                context['converted_amount'] = f"{amount:,.1f}"
                 return render(request, 'converter/index.html', context)
+            
             url = f'https://v6.exchangerate-api.com/v6/{API_KEY}/pair/{from_currency}/{to_currency}/{amount}'
             response = requests.get(url)
             data = response.json()
+
             if data.get('result') == 'success':
                 converted_amount = data.get('conversion_result')
-                context['converted_amount'] = f"{converted_amount:,.2f}"
+                # CAMBIO AQUÍ: de ,.2f a ,.1f
+                context['converted_amount'] = f"{converted_amount:,.1f}"
             else:
-                context['error'] = data.get('error-type', 'No se pudo realizar la conversiÃ³n.')
+                context['error'] = data.get('error-type', 'No se pudo realizar la conversión.')
+
         except ValueError:
-            context['error'] = 'El monto ingresado no es un nÃºmero vÃ¡lido.'
+            context['error'] = 'El monto ingresado no es un número válido.'
         except Exception:
-            context['error'] = 'OcurriÃ³ un error inesperado. Por favor, intenta de nuevo.'
+            context['error'] = 'Ocurrió un error inesperado. Por favor, intenta de nuevo.'
 
     return render(request, 'converter/index.html', context)
 

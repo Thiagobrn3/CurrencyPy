@@ -43,6 +43,12 @@
                 <div class="alert alert-danger mt-3">{{ error }}</div>
                 {% endif %}
             </div>
+            </div>
+            <div class="alert alert-dismissible alert-info mt-4">
+                <p class="mb-0"><strong>Nota Aclaratoria:</strong> Los valores mostrados se basan en datos de mercado en tiempo real y no incluyen los costos adicionales (como comisiones o diferenciales) que aplican los bancos y proveedores de cambio. El tipo de cambio final que obtengas puede variar.</p>
+            </div>
+    </div>
+</div>
         </div>
     </div>
 </div>
@@ -63,7 +69,7 @@
                     {% for row in exchange_table %}
                     <tr>
                         <td class="fw-bold text-start">{{ row.base }}</td>
-                        {% for rate in row.rates %}{% if rate is not None %}<td>{{ rate|floatformat:4 }}</td>{% else %}<td>-</td>{% endif %} {% endfor %}
+                        {% for rate in row.rates %}{% if rate is not None %}<td>{{ rate|floatformat:3 }}</td>{% else %}<td>-</td>{% endif %} {% endfor %}
                     </tr>
                     {% endfor %}
                 </tbody>
