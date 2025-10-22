@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+
+    <title>Conversor de Moneda</title>
+</head>
+
+<body>
+    <main class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow-sm p-4">
+                    <h1 class="mb-4 text-center">Conversor de Moneda</h1>
+                    
+                    <form>
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-4">
+                                <label for="amount" class="form-label fw-bold">Monto</label>
+                                <input type="number" class="form-control form-control-lg" id="amount" name="amount" placeholder="1.00" step="0.01" required>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label for="from_currency" class="form-label fw-bold">De</label>
+                                <select class="form-select form-select-lg" id="from_currency" name="from_currency">
+                                    {% for currency in currencies %}
+                                        <option value="{{ currency.code }}">{{ currency.code }} - {{ currency.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label for="to_currency" class="form-label fw-bold">A</label>
+                                <select class="form-select form-select-lg" id="to_currency" name="to_currency">
+                                    {% for currency in currencies %}
+                                        <option value="{{ currency.code }}">{{ currency.code }} - {{ currency.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary btn-lg w-100">Convertir</button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="mt-5 text-center">
+                        <h2 id="result" class="display-5">
+                            </h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+</body>
+
+</html>
