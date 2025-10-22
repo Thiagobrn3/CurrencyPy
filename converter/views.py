@@ -2,12 +2,11 @@ import requests
 from django.shortcuts import render
 import json
 from datetime import date, timedelta
-from django.core.cache import cache # <-- Importamos la caché de Django
+from django.core.cache import cache
 
 API_KEY = '0e4ca44e95444245cdcb3a1c'
 
 def get_currencies():
-    # Intentamos obtener los datos de la caché primero
     currencies_list = cache.get('currencies_list')
     if currencies_list is None:
         try:
@@ -16,14 +15,12 @@ def get_currencies():
             data = response.json()
             supported_codes = data.get('supported_codes', [])
             currencies_list = [{'code': code, 'name': name} for code, name in supported_codes]
-            # Guardamos el resultado en la caché por 6 horas (21600 segundos)
             cache.set('currencies_list', currencies_list, 21600)
         except Exception:
-            return [{'code': 'USD', 'name': 'Dólar Americano'}, {'code': 'EUR', 'name': 'Euro'}]
+            return [{'code': 'USD', 'name': 'DÃ³lar Americano'}, {'code': 'EUR', 'name': 'Euro'}]
     return currencies_list
 
 def get_exchange_table_data():
-    # Intentamos obtener los datos de la caché
     cached_data = cache.get('exchange_table_data')
     if cached_data is None:
         try:
@@ -46,16 +43,16 @@ def get_exchange_table_data():
                         row['rates'].append(None)
                 table_data.append(row)
             cached_data = (table_data, column_codes)
-            # Guardamos el resultado en la caché por 1 hora (3600 segundos)
             cache.set('exchange_table_data', cached_data, 3600)
         except Exception:
             return None, None
     return cached_data
 
 def home(request):
-    # (El resto de la lógica de la vista 'home' no necesita cambios)
     currencies = get_currencies()
-    exchange_table, column_currencies = get_exchange_table_data() if get_exchange_table_data() else (None, None)
+    # OptimizaciÃ³n: llamamos a la funciÃ³n una sola vez
+    table_info = get_exchange_table_data()
+    exchange_table, column_currencies = table_info if table_info else (None, None)
     
     context = {
         'currencies': currencies,
@@ -84,35 +81,31 @@ def home(request):
                 converted_amount = data.get('conversion_result')
                 context['converted_amount'] = f"{converted_amount:,.2f}"
             else:
-                context['error'] = data.get('error-type', 'No se pudo realizar la conversión.')
+                context['error'] = data.get('error-type', 'No se pudo realizar la conversiÃ³n.')
         except ValueError:
-            context['error'] = 'El monto ingresado no es un número válido.'
+            context['error'] = 'El monto ingresado no es un nÃºmero vÃ¡lido.'
         except Exception:
-            context['error'] = 'Ocurrió un error inesperado. Por favor, intenta de nuevo.'
+            context['error'] = 'OcurriÃ³ un error inesperado. Por favor, intenta de nuevo.'
 
     return render(request, 'converter/index.html', context)
 
 def charts_view(request):
-    # Lógica para gráficos usando Frankfurter (mucho más eficiente)
     end_date = date.today()
     start_date = end_date - timedelta(days=30)
+    # --- CAMBIAMOS ARS POR EUR PARA QUE EL GRÃFICO FUNCIONE ---
     base_currency = 'USD'
-    quote_currency = 'ARS'
+    quote_currency = 'EUR'
     
     dates, rates = [], []
-
-    # Intentamos obtener los datos del gráfico de la caché
     cache_key = f'chart_data_{base_currency}_{quote_currency}'
     chart_data = cache.get(cache_key)
 
     if chart_data is None:
         try:
-            # Hacemos UNA SOLA llamada a la API para todo el rango de fechas
             url = f"https://api.frankfurter.app/{start_date}..{end_date}?from={base_currency}&to={quote_currency}"
             response = requests.get(url)
             data = response.json()
             
-            # Procesamos la respuesta
             timeseries_data = sorted(data.get("rates", {}).items())
             for date_str, daily_rates in timeseries_data:
                 if quote_currency in daily_rates:
@@ -120,7 +113,6 @@ def charts_view(request):
                     rates.append(daily_rates[quote_currency])
             
             chart_data = {'dates': dates, 'rates': rates}
-            # Guardamos el resultado en la caché por 3 horas
             cache.set(cache_key, chart_data, 10800)
         except Exception as e:
             print(f"Error al obtener datos de Frankfurter: {e}")
