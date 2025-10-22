@@ -63,7 +63,7 @@
                     {% for row in exchange_table %}
                     <tr>
                         <td class="fw-bold text-start">{{ row.base }}</td>
-                        {% for rate in row.rates %}{% if rate is not None %}<td>{{ rate|floatformat:4 }}</td>{% else %}<td>-</td>{% endif %}{% endfor %}
+                        {% for rate in row.rates %}{% if rate is not None %}<td>{{ rate|floatformat:4 }}</td>{% else %}<td>-</td>{% endif %} {% endfor %}
                     </tr>
                     {% endfor %}
                 </tbody>

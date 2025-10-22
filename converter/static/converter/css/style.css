@@ -1,6 +1,6 @@
 body {
     font-family: 'Poppins', sans-serif;
-    background-color: #060918;
+    background-color: #060918; /* Corregido */
     background-image: linear-gradient(to right top, #060918, #0c1122, #11182c, #161f37, #1c2642);
     min-height: 100vh;
 }
@@ -14,7 +14,7 @@ body {
     background-color: #1c1c2b;
     border: none;
     border-radius: 1rem;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); /* Corregido */
 }
 
 .btn-custom-violet {
@@ -28,7 +28,8 @@ body {
 
 .btn-custom-violet:hover {
     color: #fff;
-    box-shadow: 0 0 20px #8A2BE2;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
 }
 
 .result-display strong {
@@ -47,7 +48,7 @@ body {
 .form-select:focus {
     background-color: #2a2a3e;
     border-color: #8A2BE2;
-    box-shadow: 0 0 10px rgba(138, 43, 226, 0.5);
+    box-shadow: 0 0 10px rgba(138, 43, 226, 0.5); /* Corregido */
     color: #fff;
 }
 
