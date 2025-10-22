@@ -1,0 +1,58 @@
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #060918;
+    background-image: linear-gradient(to right top, #060918, #0c1122, #11182c, #161f37, #1c2642);
+    min-height: 100vh;
+}
+
+.navbar-brand .logo-py {
+    color: #8A2BE2;
+    font-weight: 600;
+}
+
+.card-custom {
+    background-color: #1c1c2b;
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.btn-custom-violet {
+    background-image: linear-gradient(90deg, #8A2BE2, #6a1b9a);
+    border: none;
+    color: #fff;
+    font-weight: 600;
+    padding: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.btn-custom-violet:hover {
+    color: #fff;
+    box-shadow: 0 0 20px #8A2BE2;
+}
+
+.result-display strong {
+    color: #8A2BE2;
+    font-weight: 600;
+}
+
+.form-control,
+.form-select {
+    background-color: #2a2a3e;
+    border-color: #4a4a5e;
+    color: #fff;
+}
+
+.form-control:focus,
+.form-select:focus {
+    background-color: #2a2a3e;
+    border-color: #8A2BE2;
+    box-shadow: 0 0 10px rgba(138, 43, 226, 0.5);
+    color: #fff;
+}
+
+.table {
+    --bs-table-bg: transparent;
+    --bs-table-border-color: #4a4a5e;
+    --bs-table-color: #fff;
+}

@@ -1,120 +1,75 @@
-<!DOCTYPE html>
-<html lang="es">
+{% extends 'converter/base.html' %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-    <title>Conversor de Moneda</title>
-</head>
+{% block title %}Conversor | CurrencyPy{% endblock %}
 
-<body>
-    <main class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <div class="card shadow-sm p-4">
-                    <h1 class="mb-4 text-center">Conversor de Moneda</h1>
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="card card-custom p-4 p-md-5">
+            <h2 class="mb-4 text-center">Currency Converter</h2>
 
-                    <form method="POST">
-                        {% csrf_token %}
-                        <div class="row g-3 align-items-end">
-                            <div class="col-md-4">
-                                <label for="amount" class="form-label fw-bold">Monto</label>
-                                <input type="number" class="form-control form-control-lg" id="amount" name="amount"
-                                    placeholder="1.00" step="0.01" value="{{ original_amount|cut:',' }}" required>
-                            </div>
-
-                            <div class="col-md-3">
-                                <label for="from_currency" class="form-label fw-bold">De</label>
-                                <select class="form-select form-select-lg" id="from_currency" name="from_currency">
-                                    {% for currency in currencies %}
-                                    {% if currency.code == from_currency %}
-                                    <option value="{{ currency.code }}" selected>{{ currency.code }} - {{ currency.name
-                                        }}</option>
-                                    {% else %}
-                                    <option value="{{ currency.code }}">{{ currency.code }} - {{ currency.name }}
-                                    </option>
-                                    {% endif %}
-                                    {% endfor %}
-                                </select>
-                            </div>
-
-                            <div class="col-md-3">
-                                <label for="to_currency" class="form-label fw-bold">A</label>
-                                <select class="form-select form-select-lg" id="to_currency" name="to_currency">
-                                    {% for currency in currencies %}
-                                    {% if currency.code == to_currency %}
-                                    <option value="{{ currency.code }}" selected>{{ currency.code }} - {{ currency.name
-                                        }}</option>
-                                    {% else %}
-                                    <option value="{{ currency.code }}">{{ currency.code }} - {{ currency.name }}
-                                    </option>
-                                    {% endif %}
-                                    {% endfor %}
-                                </select>
-                            </div>
-
-                            <div class="col-md-2">
-                                <button type="submit" class="btn btn-primary btn-lg w-100">Convertir</button>
-                            </div>
-                        </div>
-                    </form>
-
-                    <div class="mt-5 text-center">
-                        {% if converted_amount %}
-                        <h2 class="display-5 text-success">
-                            {{ original_amount }} {{ from_currency }} = <strong>{{ converted_amount }} {{ to_currency
-                                }}</strong>
-                        </h2>
-                        {% endif %}
-                        {% if error %}
-                        <div class="alert alert-danger mt-3">{{ error }}</div>
-                        {% endif %}
+            <form method="POST">
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="amount" class="form-label">Amount</label>
+                        <input type="number" class="form-control" id="amount" name="amount" placeholder="1.00" step="0.01" value="{{ original_amount|cut:',' }}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="from_currency" class="form-label">From</label>
+                        <select class="form-select" id="from_currency" name="from_currency">
+                            {% for currency in currencies %}{% if currency.code == from_currency %}<option value="{{ currency.code }}" selected>{{ currency.code }} - {{ currency.name }}</option>{% else %}<option value="{{ currency.code }}">{{ currency.code }} - {{ currency.name }}</option>{% endif %}{% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="to_currency" class="form-label">To</label>
+                        <select class="form-select" id="to_currency" name="to_currency">
+                            {% for currency in currencies %}{% if currency.code == to_currency %}<option value="{{ currency.code }}" selected>{{ currency.code }} - {{ currency.name }}</option>{% else %}<option value="{{ currency.code }}">{{ currency.code }} - {{ currency.name }}</option>{% endif %}{% endfor %}
+                        </select>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        {% if exchange_table %}
-        <div class="row justify-content-center mt-5">
-            <div class="col-lg-10">
-                <h2 class="mb-3">Tipos de Cambio Cruzados</h2>
-                <div class="table-responsive">
-                    <table class="table table-bordered table-hover text-center">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="align-middle">Desde / Hacia</th>
-                                {% for code in column_currencies %}
-                                <th>{{ code }}</th>
-                                {% endfor %}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for row in exchange_table %}
-                            <tr>
-                                <td class="fw-bold text-start">{{ row.base }}</td>
-                                {% for rate in row.rates %}
-                                <td>
-                                    {% if rate is not None %}
-                                    {{ rate|floatformat:4 }}
-                                    {% else %}
-                                    -
-                                    {% endif %}
-                                </td>
-                                {% endfor %}
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" class="btn btn-custom-violet btn-lg">Convert</button>
                 </div>
+            </form>
+
+            <div class="mt-4 text-center">
+                {% if converted_amount %}
+                <h2 class="display-5 result-display">
+                    {{ original_amount }} {{ from_currency }} = <strong>{{ converted_amount }} {{ to_currency }}</strong>
+                </h2>
+                {% endif %}
+                {% if error %}
+                <div class="alert alert-danger mt-3">{{ error }}</div>
+                {% endif %}
             </div>
         </div>
-        {% endif %}
-    </main>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
-        crossorigin="anonymous"></script>
-</body>
+    </div>
+</div>
 
-</html>
+{% if exchange_table %}
+<div class="row justify-content-center mt-5">
+    <div class="col-lg-12">
+        <h2 class="mb-4 text-center">Cross-Exchange Rates</h2>
+        <div class="table-responsive card-custom p-3">
+            <table class="table table-hover text-center">
+                <thead>
+                    <tr>
+                        <th class="align-middle">FROM / TO</th>
+                        {% for code in column_currencies %}<th>{{ code }}</th>{% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in exchange_table %}
+                    <tr>
+                        <td class="fw-bold text-start">{{ row.base }}</td>
+                        {% for rate in row.rates %}{% if rate is not None %}<td>{{ rate|floatformat:4 }}</td>{% else %}<td>-</td>{% endif %}{% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
