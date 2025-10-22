@@ -69,3 +69,10 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # -----------------------------------------------------------
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+    }
+}
