@@ -2,56 +2,68 @@
 import requests
 from django.shortcuts import render
 
+def get_currencies():
+    """
+    Función para obtener la lista de monedas y sus nombres desde la API.
+    """
+    try:
+        url = 'https://api.frankfurter.app/currencies'
+        response = requests.get(url)
+        data = response.json()
+        # Convertimos el diccionario de la API a una lista de diccionarios
+        # que nuestra plantilla pueda usar fácilmente.
+        currencies_list = [{'code': code, 'name': name} for code, name in data.items()]
+        return currencies_list
+    except Exception:
+        # En caso de que la API de monedas falle, usamos una lista de respaldo.
+        return [
+            {'code': 'USD', 'name': 'Dólar Americano'},
+            {'code': 'EUR', 'name': 'Euro'},
+            {'code': 'JPY', 'name': 'Yen Japonés'},
+        ]
+
 def home(request):
-    # Lista de monedas para los menús desplegables
-    currencies = [
-        {'code': 'USD', 'name': 'Dólar Americano'},
-        {'code': 'EUR', 'name': 'Euro'},
-        {'code': 'GBP', 'name': 'Libra Esterlina'},
-        {'code': 'JPY', 'name': 'Yen Japonés'},
-        {'code': 'ARS', 'name': 'Peso Argentino'},
-        {'code': 'BRL', 'name': 'Real Brasileño'},
-        {'code': 'CLP', 'name': 'Peso Chileno'},
-    ]
+    # Obtenemos la lista de monedas actualizada
+    currencies = get_currencies()
+    context = {'currencies': currencies}
 
-    context = {
-        'currencies': currencies
-    }
-
-    # Si el formulario fue enviado (método POST)
     if request.method == 'POST':
-        try:
-            # 1. OBTENER DATOS DEL FORMULARIO
-            amount_str = request.POST.get('amount')
-            from_currency = request.POST.get('from_currency')
-            to_currency = request.POST.get('to_currency')
+        amount_str = request.POST.get('amount')
+        from_currency = request.POST.get('from_currency')
+        to_currency = request.POST.get('to_currency')
 
-            # Validar que el monto no esté vacío
-            if not amount_str:
-                context['error'] = 'Por favor, ingresa un monto.'
+        # Guardamos las selecciones del usuario en el contexto
+        context['from_currency'] = from_currency
+        context['to_currency'] = to_currency
+
+        if not amount_str:
+            context['error'] = 'Por favor, ingresa un monto.'
+            return render(request, 'converter/index.html', context)
+        
+        try:
+            amount = float(amount_str)
+            context['original_amount'] = f"{amount:,.2f}"
+
+            if from_currency == to_currency:
+                context['converted_amount'] = f"{amount:,.2f}"
                 return render(request, 'converter/index.html', context)
             
-            amount = float(amount_str)
-
-            # 2. LLAMAR A LA API DE FRANKFURTER
-            # La API convierte el monto por nosotros
+            # Llamamos a la API para la conversión
             url = f'https://api.frankfurter.app/latest?amount={amount}&from={from_currency}&to={to_currency}'
             response = requests.get(url)
             data = response.json()
 
-            # 3. CALCULAR Y PREPARAR EL RESULTADO
-            # El resultado está en el diccionario 'rates'
-            converted_amount = data['rates'][to_currency]
-            
-            # 4. PREPARAR EL CONTEXTO PARA MOSTRAR EN LA PLANTILLA
-            context['converted_amount'] = f"{converted_amount:,.2f}" # Formateado con 2 decimales
-            context['original_amount'] = f"{amount:,.2f}"
-            context['from_currency'] = from_currency
-            context['to_currency'] = to_currency
+            # Verificamos si la API devolvió un error
+            if 'rates' not in data:
+                context['error'] = data.get('message', 'No se pudo obtener la tasa de cambio.')
+            else:
+                converted_amount = data['rates'][to_currency]
+                context['converted_amount'] = f"{converted_amount:,.2f}"
 
+        except ValueError:
+            context['error'] = 'El monto ingresado no es un número válido.'
         except Exception as e:
-            # Manejo de errores (ej: la API no responde o la moneda no existe)
-            context['error'] = f'Ocurrió un error: {e}'
+            # Ahora mostramos un error más genérico si algo más falla
+            context['error'] = f'Ocurrió un error inesperado. Por favor, intenta de nuevo.'
 
-    # Renderizar la página (tanto para GET como después de un POST)
     return render(request, 'converter/index.html', context)
