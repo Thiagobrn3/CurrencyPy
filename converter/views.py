@@ -99,3 +99,9 @@ def home(request):
             context['error'] = 'Ocurrió un error inesperado. Por favor, intenta de nuevo.'
 
     return render(request, 'converter/index.html', context)
+
+def charts_view(request):
+    # Por ahora, solo renderizamos la plantilla.
+    # Más adelante, aquí irá la lógica para obtener los datos históricos.
+    context = {}
+    return render(request, 'converter/charts.html', context)
