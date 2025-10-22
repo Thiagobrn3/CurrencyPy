@@ -1,6 +1,7 @@
 import requests
 from django.shortcuts import render
-
+import json
+from datetime import date, timedelta
 # --- PEGA TU API KEY AQUÍ ---
 API_KEY = '0e4ca44e95444245cdcb3a1c'
 # -------------------------
@@ -100,8 +101,43 @@ def home(request):
 
     return render(request, 'converter/index.html', context)
 
+# converter/views.py
+
+# ... (tus importaciones y otras funciones se mantienen igual) ...
+
 def charts_view(request):
-    # Por ahora, solo renderizamos la plantilla.
-    # Más adelante, aquí irá la lógica para obtener los datos históricos.
-    context = {}
+    # --- LÃ³gica FINAL para obtener datos histÃ³ricos ---
+
+    end_date = date.today()
+    start_date = end_date - timedelta(days=30)
+    base_currency = 'USD'
+    quote_currency = 'ARS'
+    
+    dates = []
+    rates = []
+
+    current_date = start_date
+    while current_date <= end_date:
+        date_str = current_date.strftime('%Y/%m/%d')
+        url = f"https://v6.exchangerate-api.com/v6/{API_KEY}/history/{base_currency}/{date_str}"
+        
+        try:
+            response = requests.get(url)
+            data = response.json()
+            
+            if data.get("result") == "success" and quote_currency in data.get("conversion_rates", {}):
+                dates.append(current_date.strftime('%Y-%m-%d'))
+                rates.append(data["conversion_rates"][quote_currency])
+        except Exception as e:
+            print(f"Error al obtener datos para la fecha {date_str}: {e}")
+
+        current_date += timedelta(days=1)
+
+    context = {
+        'dates_json': json.dumps(dates),
+        'rates_json': json.dumps(rates),
+        'base_currency': base_currency,
+        'quote_currency': quote_currency,
+    }
+    
     return render(request, 'converter/charts.html', context)

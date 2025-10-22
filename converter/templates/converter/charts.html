@@ -4,9 +4,72 @@
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-lg-10 text-center">
-        <h1 class="mb-4">Gráficos Históricos</h1>
-        <p class="lead">Próximamente, aquí podrás visualizar la evolución de las tasas de cambio.</p>
+    <div class="col-lg-10">
+        <div class="card card-custom p-4">
+            <h2 class="mb-4 text-center">Evolución de {{ base_currency }} a {{ quote_currency }} (Últimos 30 días)</h2>
+            
+            <div style="position: relative; height: 400px;">
+                <canvas id="historicalChart"></canvas>
+            </div>
+            
+        </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Obtenemos los datos que Django nos pasó desde la vista
+    const dates = JSON.parse('{{ dates_json|safe }}');
+    const rates = JSON.parse('{{ rates_json|safe }}');
+    const ctx = document.getElementById('historicalChart').getContext('2d');
+
+    // Creamos el gráfico con los datos y estilos para el tema oscuro
+    const historicalChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [{
+                label: `Valor de 1 {{ base_currency }} en {{ quote_currency }}`,
+                data: rates,
+                borderColor: '#8A2BE2',
+                backgroundColor: 'rgba(138, 43, 226, 0.2)',
+                fill: true,
+                tension: 0.3,
+                pointBackgroundColor: '#8A2BE2',
+                pointRadius: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: 'rgba(255, 255, 255, 0.8)'
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    ticks: {
+                        color: 'rgba(255, 255, 255, 0.6)'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: 'rgba(255, 255, 255, 0.6)'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                }
+            }
+        }
+    });
+</script>
 {% endblock %}
