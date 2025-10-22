@@ -15,7 +15,6 @@
                     
                     <form method="POST">
                         {% csrf_token %}
-
                         <div class="row g-3 align-items-end">
                             <div class="col-md-4">
                                 <label for="amount" class="form-label fw-bold">Monto</label>
@@ -26,9 +25,11 @@
                                 <label for="from_currency" class="form-label fw-bold">De</label>
                                 <select class="form-select form-select-lg" id="from_currency" name="from_currency">
                                     {% for currency in currencies %}
-                                        <option value="{{ currency.code }}" {% if currency.code == from_currency %}selected{% endif %}>
-                                            {{ currency.code }} - {{ currency.name }}
-                                        </option>
+                                        {% if currency.code == from_currency %}
+                                            <option value="{{ currency.code }}" selected>{{ currency.code }} - {{ currency.name }}</option>
+                                        {% else %}
+                                            <option value="{{ currency.code }}">{{ currency.code }} - {{ currency.name }}</option>
+                                        {% endif %}
                                     {% endfor %}
                                 </select>
                             </div>
@@ -37,9 +38,11 @@
                                 <label for="to_currency" class="form-label fw-bold">A</label>
                                 <select class="form-select form-select-lg" id="to_currency" name="to_currency">
                                     {% for currency in currencies %}
-                                        <option value="{{ currency.code }}" {% if currency.code == to_currency %}selected{% endif %}>
-                                            {{ currency.code }} - {{ currency.name }}
-                                        </option>
+                                        {% if currency.code == to_currency %}
+                                            <option value="{{ currency.code }}" selected>{{ currency.code }} - {{ currency.name }}</option>
+                                        {% else %}
+                                            <option value="{{ currency.code }}">{{ currency.code }} - {{ currency.name }}</option>
+                                        {% endif %}
                                     {% endfor %}
                                 </select>
                             </div>
@@ -56,7 +59,6 @@
                                 {{ original_amount }} {{ from_currency }} = <strong>{{ converted_amount }} {{ to_currency }}</strong>
                             </h2>
                         {% endif %}
-
                         {% if error %}
                             <div class="alert alert-danger mt-3">{{ error }}</div>
                         {% endif %}
@@ -64,6 +66,30 @@
                 </div>
             </div>
         </div>
+
+        {% if rates %}
+        <div class="row justify-content-center mt-5">
+            <div class="col-lg-8">
+                <h2 class="mb-3">Cotizaciones (Base: {{ base_currency }})</h2>
+                <table class="table table-hover table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Moneda</th>
+                            <th>Valor (1 {{ base_currency }} equivale a...)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for code, rate in rates.items %}
+                        <tr>
+                            <td><strong>{{ code }}</strong></td>
+                            <td>{{ rate|floatformat:4 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
     </main>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
 </body>
