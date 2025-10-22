@@ -90,41 +90,54 @@ def home(request):
     return render(request, 'converter/index.html', context)
 
 def charts_view(request):
+    # --- Lógica para obtener datos para MÚLTIPLES gráficos ---
+
     end_date = date.today()
     start_date = end_date - timedelta(days=30)
-    # --- CAMBIAMOS ARS POR EUR PARA QUE EL GRÃFICO FUNCIONE ---
     base_currency = 'USD'
-    quote_currency = 'EUR'
     
-    dates, rates = [], []
-    cache_key = f'chart_data_{base_currency}_{quote_currency}'
-    chart_data = cache.get(cache_key)
+    # 1. Definimos la lista de monedas para los gráficos
+    quote_currencies = ['EUR', 'GBP', 'JPY', 'CHF', 'AUD', 'CAD', 'CNY']
+    
+    # 2. Convertimos la lista en un string para la URL de la API
+    symbols_string = ",".join(quote_currencies)
+    
+    # Diccionario para guardar los datos de todos los gráficos
+    charts_data = {}
+    cache_key = f'charts_data_{base_currency}_{symbols_string}'
+    cached_data = cache.get(cache_key)
 
-    if chart_data is None:
+    if cached_data is None:
         try:
-            url = f"https://api.frankfurter.app/{start_date}..{end_date}?from={base_currency}&to={quote_currency}"
+            # 3. Hacemos UNA SOLA llamada a la API para todas las monedas
+            url = f"https://api.frankfurter.app/{start_date}..{end_date}?from={base_currency}&to={symbols_string}"
             response = requests.get(url)
             data = response.json()
+
+            # 4. Procesamos la respuesta y organizamos los datos por moneda
+            if "rates" in data:
+                # Inicializamos la estructura de datos
+                for currency in quote_currencies:
+                    charts_data[currency] = {'dates': [], 'rates': []}
+
+                # Llenamos la estructura con los datos de la API
+                for date_str, daily_rates in sorted(data["rates"].items()):
+                    for currency_code, rate in daily_rates.items():
+                        charts_data[currency_code]['dates'].append(date_str)
+                        charts_data[currency_code]['rates'].append(rate)
             
-            timeseries_data = sorted(data.get("rates", {}).items())
-            for date_str, daily_rates in timeseries_data:
-                if quote_currency in daily_rates:
-                    dates.append(date_str)
-                    rates.append(daily_rates[quote_currency])
-            
-            chart_data = {'dates': dates, 'rates': rates}
-            cache.set(cache_key, chart_data, 10800)
+            # Guardamos en caché
+            cache.set(cache_key, charts_data, 10800)
+
         except Exception as e:
             print(f"Error al obtener datos de Frankfurter: {e}")
     else:
-        dates = chart_data['dates']
-        rates = chart_data['rates']
+        charts_data = cached_data
 
     context = {
-        'dates_json': json.dumps(dates),
-        'rates_json': json.dumps(rates),
+        # Serializamos todo el diccionario a JSON
+        'charts_data_json': json.dumps(charts_data),
         'base_currency': base_currency,
-        'quote_currency': quote_currency,
     }
     
     return render(request, 'converter/charts.html', context)

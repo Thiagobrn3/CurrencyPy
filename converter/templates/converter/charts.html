@@ -3,73 +3,63 @@
 {% block title %}Gráficos | CurrencyPy{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-lg-10">
-        <div class="card card-custom p-4">
-            <h2 class="mb-4 text-center">Evolución de {{ base_currency }} a {{ quote_currency }} (Últimos 30 días)</h2>
-            
-            <div style="position: relative; height: 400px;">
-                <canvas id="historicalChart"></canvas>
-            </div>
-            
-        </div>
+<h1 class="mb-4 text-center">Evolución de Monedas vs. {{ base_currency }} (Últimos 30 días)</h1>
+
+<div class="row g-4">
     </div>
-</div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-    // Obtenemos los datos que Django nos pasó desde la vista
-    const dates = JSON.parse('{{ dates_json|safe }}');
-    const rates = JSON.parse('{{ rates_json|safe }}');
-    const ctx = document.getElementById('historicalChart').getContext('2d');
+    // 1. Obtenemos el diccionario completo de datos desde Django
+    const chartsData = JSON.parse('{{ charts_data_json|safe }}');
+    const chartContainer = document.querySelector('.row.g-4');
 
-    // Creamos el gráfico con los datos y estilos para el tema oscuro
-    const historicalChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: dates,
-            datasets: [{
-                label: `Valor de 1 {{ base_currency }} en {{ quote_currency }}`,
-                data: rates,
-                borderColor: '#8A2BE2',
-                backgroundColor: 'rgba(138, 43, 226, 0.2)',
-                fill: true,
-                tension: 0.3,
-                pointBackgroundColor: '#8A2BE2',
-                pointRadius: 2
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    labels: {
-                        color: 'rgba(255, 255, 255, 0.8)'
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: false,
-                    ticks: {
-                        color: 'rgba(255, 255, 255, 0.6)'
-                    },
-                    grid: {
-                        color: 'rgba(255, 255, 255, 0.1)'
-                    }
+    // 2. Iteramos sobre cada moneda en nuestros datos
+    for (const currencyCode in chartsData) {
+        if (chartsData.hasOwnProperty(currencyCode)) {
+            const chartInfo = chartsData[currencyCode];
+            
+            // 3. Creamos los elementos HTML para cada gráfico dinámicamente
+            const colDiv = document.createElement('div');
+            colDiv.className = 'col-lg-6'; // Cada gráfico ocupa la mitad del ancho en pantallas grandes
+
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'card card-custom p-3';
+
+            const canvas = document.createElement('canvas');
+            canvas.id = `chart-${currencyCode}`; // Asignamos un ID único a cada canvas
+            
+            cardDiv.appendChild(canvas);
+            colDiv.appendChild(cardDiv);
+            chartContainer.appendChild(colDiv);
+
+            // 4. Creamos un nuevo gráfico de Chart.js para el canvas actual
+            const ctx = document.getElementById(`chart-${currencyCode}`).getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: chartInfo.dates,
+                    datasets: [{
+                        label: `Valor de 1 {{ base_currency }} en ${currencyCode}`,
+                        data: chartInfo.rates,
+                        borderColor: '#8A2BE2',
+                        backgroundColor: 'rgba(138, 43, 226, 0.2)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0 // Sin puntos para un look más limpio
+                    }]
                 },
-                x: {
-                    ticks: {
-                        color: 'rgba(255, 255, 255, 0.6)'
-                    },
-                    grid: {
-                        color: 'rgba(255, 255, 255, 0.1)'
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: true, labels: { color: 'rgba(255, 255, 255, 0.8)' } } },
+                    scales: {
+                        y: { ticks: { color: 'rgba(255, 255, 255, 0.6)' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } },
+                        x: { ticks: { display: false }, grid: { color: 'rgba(255, 255, 255, 0.1)' } } // Ocultamos las fechas en el eje X para no saturar
                     }
                 }
-            }
+            });
         }
-    });
+    }
 </script>
 {% endblock %}
